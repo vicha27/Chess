@@ -23,6 +23,7 @@ public class PromotionMenu : MonoBehaviour
     public void Resume()
     {
         BoardManager.Instance.SpawnChessFigure(choice, BoardManager.CurrentXLocation, BoardManager.CurrentYLocation); // User chooses which piece to promote Pawn to
+        //Debug.Log("Figure should have spawned at x - " + BoardManager.CurrentXLocation + ", y - " + BoardManager.CurrentYLocation);
         promotionMenuUI.SetActive(false);
         Time.timeScale = 1f;
         PawnIsPromoted = false;

@@ -12,7 +12,7 @@ public class Pawn : ChessFigure
         if (isWhite)
         {
             // Diagonal Left
-            if(CurrentX != 0 && CurrentY != 7)
+            if(CurrentX > 0 && CurrentY < 7)
             {
                 c = ChessFigurePositions[CurrentX -1, CurrentY +1];
                 if(c != null && !c.isWhite)
@@ -21,7 +21,7 @@ public class Pawn : ChessFigure
                 }
             }
             // En Passant Left
-            if (CurrentY == 4 && CurrentX != 0)
+            if (CurrentY == 4 && CurrentX > 0)
             {
                 c = ChessFigurePositions[CurrentX - 1, CurrentY];
                 Vector2Int[] lastMove = BoardManager.moveList[BoardManager.moveList.Count - 1];
@@ -35,7 +35,7 @@ public class Pawn : ChessFigure
             }
 
             // Diagonal Right
-            if (CurrentX != 7 && CurrentY != 7)
+            if (CurrentX < 7 && CurrentY < 7)
             {
                 c = ChessFigurePositions[CurrentX + 1, CurrentY + 1];
                 if (c != null && !c.isWhite)
@@ -44,7 +44,7 @@ public class Pawn : ChessFigure
                 }
             }
             // En Passant Right
-            if (CurrentY == 4 && CurrentX != 7)
+            if (CurrentY == 4 && CurrentX < 7)
             {
                 c = ChessFigurePositions[CurrentX + 1, CurrentY];
                 Vector2Int[] lastMove = BoardManager.moveList[BoardManager.moveList.Count - 1];
@@ -58,7 +58,7 @@ public class Pawn : ChessFigure
             }
 
             // Forward
-            if(CurrentY != 7)
+            if(CurrentY < 7)
             {
                 c = ChessFigurePositions[CurrentX, CurrentY + 1];
                 if(c == null)
@@ -80,7 +80,7 @@ public class Pawn : ChessFigure
         else
         {//else the Pawn is Black
             // Diagonal Left
-            if (CurrentX != 0 && CurrentY != 0)
+            if (CurrentX > 0 && CurrentY > 0)
             {
                 c = ChessFigurePositions[CurrentX - 1, CurrentY - 1];
                 if (c != null && c.isWhite)
@@ -89,7 +89,7 @@ public class Pawn : ChessFigure
                 }
             }
             // En Passant Left
-            if (CurrentY == 3 && CurrentX != 0)
+            if (CurrentY == 3 && CurrentX > 0)
             {
                 c = ChessFigurePositions[CurrentX - 1, CurrentY];
                 Vector2Int[] lastMove = BoardManager.moveList[BoardManager.moveList.Count - 1];
@@ -102,7 +102,7 @@ public class Pawn : ChessFigure
                 }
             }
             // Diagonal Right
-            if (CurrentX != 7 && CurrentY != 0)
+            if (CurrentX < 7 && CurrentY > 0)
             {
                 c = ChessFigurePositions[CurrentX + 1, CurrentY - 1];
                 if (c != null && c.isWhite)
@@ -111,7 +111,7 @@ public class Pawn : ChessFigure
                 }
             }
             // En Passant Right
-            if (CurrentY == 3 && CurrentX != 7)
+            if (CurrentY == 3 && CurrentX < 7)
             {
                 c = ChessFigurePositions[CurrentX + 1, CurrentY];
                 Vector2Int[] lastMove = BoardManager.moveList[BoardManager.moveList.Count - 1];
@@ -124,7 +124,7 @@ public class Pawn : ChessFigure
                 }
             }
             // Forward
-            if (CurrentY != 0)
+            if (CurrentY > 0)
             {
                 c = ChessFigurePositions[CurrentX, CurrentY - 1];
                 if (c == null)

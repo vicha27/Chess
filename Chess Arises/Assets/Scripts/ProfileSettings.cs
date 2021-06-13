@@ -40,28 +40,27 @@ public class ProfileSettings : ScriptableObject
             Debug.LogWarning("There is no AudioMixer defined in the profiles file");
             return volume;
         }
-
-        for(int i = 0; i < volumeControl.Length; i++)
+        for (int i = 0; i < volumeControl.Length; i++)
         {
-            if(volumeControl[i].name != name)
-            {
-                continue;
-            }
-            else
-            {
-                if (saveInPlayerPrefs)
+                if (volumeControl[i].name != name)
                 {
-                    if(PlayerPrefs.HasKey(prefPrefix + volumeControl[i].name))
-                    {
-                        volumeControl[i].volume = PlayerPrefs.GetFloat(prefPrefix + volumeControl[i].name);
-                    }
+                    continue;
                 }
-                volumeControl[i].tempVolume = volumeControl[i].volume;
-                if (audioMixer)
-                    audioMixer.SetFloat(volumeControl[i].name, Mathf.Log10(volumeControl[i].volume) * 20f);
-                volume = volumeControl[i].volume;
-                break;
-            }
+                else
+                {
+                    if (saveInPlayerPrefs)
+                    {
+                        if (PlayerPrefs.HasKey(prefPrefix + volumeControl[i].name))
+                        {
+                            volumeControl[i].volume = PlayerPrefs.GetFloat(prefPrefix + volumeControl[i].name);
+                        }
+                    }
+                    volumeControl[i].tempVolume = volumeControl[i].volume;
+                    if (audioMixer && AudioManager.muted)
+                        audioMixer.SetFloat(volumeControl[i].name, Mathf.Log10(volumeControl[i].volume) * 20f);
+                    volume = volumeControl[i].volume;
+                    break;
+                }
         }
         return volume;
     }
@@ -73,22 +72,34 @@ public class ProfileSettings : ScriptableObject
             Debug.LogWarning("There is no AudioMixer defined in the profiles file");
             return;
         }
-
+        int muted = 0;
+        muted = PlayerPrefs.GetInt(prefPrefix + "Muted");
+        if(muted == 0)
+        {
+            AudioManager.muted = true;
+        }
+        else
+        {
+            AudioManager.muted = false;
+        }
         for (int i = 0; i < volumeControl.Length; i++)
         {
-            if (saveInPlayerPrefs)
-            {
-                if (PlayerPrefs.HasKey(prefPrefix + volumeControl[i].name))
+                if (saveInPlayerPrefs)
                 {
-                    volumeControl[i].volume = PlayerPrefs.GetFloat(prefPrefix + volumeControl[i].name);
+                    if (PlayerPrefs.HasKey(prefPrefix + volumeControl[i].name))
+                    {
+                        volumeControl[i].volume = PlayerPrefs.GetFloat(prefPrefix + volumeControl[i].name);
+                    }
                 }
-            }
-            //reset the audio volume
-            volumeControl[i].tempVolume = volumeControl[i].volume;
+                //reset the audio volume
+                volumeControl[i].tempVolume = volumeControl[i].volume;
 
-            float vol2 = volumeControl[i].volume;
+                float vol2 = volumeControl[i].volume;
             //set the mixer to match the volume //try if it fails Mathf.Log10(volumeControl[i].volume) * 20f
-            audioMixer.SetFloat(volumeControl[i].name, Mathf.Log10(volumeControl[i].volume) * 20f);         
+            if (AudioManager.muted)
+            {
+                audioMixer.SetFloat(volumeControl[i].name, Mathf.Log10(volumeControl[i].volume) * 20f);
+            }
         }
     }
 
@@ -109,10 +120,8 @@ public class ProfileSettings : ScriptableObject
                 }
                 else
                 {
-                    //Debug.Log(volumeControl[i].name + " is the same value as " + name);
                     audioMixer.SetFloat(volumeControl[i].name, Mathf.Log10(volume) * 20);
                     volumeControl[i].tempVolume = volume;
-                    //volumeControl[i].volume = volume;
                     break;
                 }
             }
@@ -133,6 +142,16 @@ public class ProfileSettings : ScriptableObject
             audioMixer.SetFloat(volumeControl[i].name, -60);
             volumeControl[i].volume = volume;
         }
+        int muted = 0;
+        if (AudioManager.muted)
+        {
+            muted = 0;
+        }
+        else
+        {
+            muted = 1;
+        }
+        PlayerPrefs.SetInt(prefPrefix + "Muted", muted);
     }
 
     public void SaveAudioLevels()

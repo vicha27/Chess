@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using TMPro;
 
 public class BoardManager : MonoBehaviour
 {
@@ -26,6 +27,8 @@ public class BoardManager : MonoBehaviour
     private List<GameObject> blackFigures = new List<GameObject>();
     private List<GameObject> deadWhiteFigures = new List<GameObject>();
     private List<GameObject> deadBlackFigures = new List<GameObject>();
+    private List<int> defenderXLocations = new List<int>();
+    private List<int> defenderYLocations = new List<int>();
     //the ai itself. Initiated on Start()
     private ChessAI ai;
     //if isWhiteTurn, move White pieces
@@ -49,6 +52,9 @@ public class BoardManager : MonoBehaviour
     [Header("Input Settings")]
     public static PlayerInput playerInput;
     [SerializeField] public GameObject CheckScreen;
+    [SerializeField] public GameObject Player1Turn;
+    [SerializeField] public GameObject Player2Turn;
+    [SerializeField] public TMP_Text Moves;
 
     //Action Maps - will eventually use when we need to switch action maps
     //private string actionMapPlayerControls = "CameraControls";
@@ -57,7 +63,7 @@ public class BoardManager : MonoBehaviour
 
     //Current Control Scheme
     private string currentControlScheme;
-    
+
     //Button Booleans - prolly could have handled this better, but it works for now
     public static bool zoomingIn = false;
     public static bool zoomingOut = false;
@@ -76,6 +82,7 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private float dragOffset = 1f;
     private Vector3 bounds;
     public static List<Vector2Int[]> moveList = new List<Vector2Int[]>();
+    public string moveListString = "";
 
     void Awake()
     {
@@ -106,94 +113,18 @@ public class BoardManager : MonoBehaviour
 
     void Update()
     {
-        try 
+        try
         {
-        if (!PauseMenu.GameIsPaused)
-        {
-            DrawChessBoard();
-            UpdateSelection();
-
-            if (mouseClicked && !EndGameMenu.GameHasEnded)
+            if (!PauseMenu.GameIsPaused)
             {
-                if (selectionX >= 0 && selectionY >= 0)
+                DrawChessBoard();
+                UpdateSelection();
+
+                if (mouseClicked && !EndGameMenu.GameHasEnded && !PromotionMenu.PawnIsPromoted)
                 {
-                    if (selectedFigure == null)
+                    if (selectionX >= 0 && selectionY >= 0)
                     {
-                        // Select Figure
-                        SelectChessFigure(selectionX, selectionY);
-                    }
-                    else
-                    {
-                        // Move Figure
-                        MoveChessFigure(selectionX, selectionY);
-                        if (CheckForCheckMate())
-                        {
-                            EndGame();
-                            return;
-                        }
-                    }
-                }
-            }
-            if (inCheck)
-            {
-                //if the king is in check, do something!!!
-                //I'm thinking of like a banner and a sound alert that goes
-                //KING IS IN CHECK!
-                CheckScreen.SetActive(true);
-            }
-            if(!inCheck)
-            {
-                CheckScreen.SetActive(false);        
-            }
-
-            //Zoom In Logic
-            if (zoomingIn)
-            {
-                OnZoomIn();
-            }
-            //Zoom Out Logic
-            if (zoomingOut)
-            {
-                OnZoomOut();
-            }
-            //Rotate Left Logic
-            if (rotatingLeft)
-            {
-                OnRotateLeft();
-            }
-            //Rotate Right Logic
-            if (rotatingRight)
-            {
-                OnRotateRight();
-            }
-
-            // AI should be black player
-            if (!isWhiteTurn && PromotionMenu.PawnIsPromoted == false)
-            {
-                    //Normal AI code
-                    //Vector2 aiMove = new Vector2();
-                    //int aiX = -1;
-                    //int aiY = -1;
-                    //while (aiY == -1)
-                    //{
-                    //    selectedFigure = ai.SelectChessFigure();
-                    //    aiMove = ai.MakeMove(selectedFigure);
-                    //    aiX = (int)Math.Round(aiMove.x);
-                    //    aiY = (int)Math.Round(aiMove.y);
-                    //        if (aiY > -1)
-                    //    {
-                    //        break;
-                    //    }
-                    //}
-                    //allowedMoves = ChessFigurePositions[selectedFigure.CurrentX, selectedFigure.CurrentY].PossibleMove();
-                    //CurrentXLocation = selectedFigure.CurrentX;
-                    //CurrentYLocation = selectedFigure.CurrentY;
-                    //MoveChessFigure(aiX, aiY);
-
-                    //Debug play myself
-                    if (mouseClicked && !EndGameMenu.GameHasEnded)
-                    {
-                        if (selectionX >= 0 && selectionY >= 0)
+                        if (!inCheck)
                         {
                             if (selectedFigure == null)
                             {
@@ -206,14 +137,114 @@ public class BoardManager : MonoBehaviour
                                 MoveChessFigure(selectionX, selectionY);
                                 if (CheckForCheckMate())
                                 {
+                                    inCheck = false;
+                                    isWhiteTurn = !isWhiteTurn;
                                     EndGame();
                                     return;
                                 }
                             }
                         }
+                        else
+                        {
+                            if (selectedFigure == null)
+                            {
+                                if(defenderXLocations.Contains(selectionX) && defenderYLocations.Contains(selectionY))
+                                {
+                                    // Select Figure
+                                    SelectChessFigure(selectionX, selectionY);
+                                }
+                            }
+                            else
+                            {
+                                // Move Figure
+                                MoveChessFigure(selectionX, selectionY);
+                                CheckForCheckMate();
+                            }
+                        }
                     }
-            }//black turn
-        }//end of if !paused
+                }
+                // AI should be black player
+                //if (!isWhiteTurn && PromotionMenu.PawnIsPromoted == false)
+                //{
+                //    //Normal AI code
+                //    //Vector2 aiMove = new Vector2();
+                //    //int aiX = -1;
+                //    //int aiY = -1;
+                //    //while (aiY == -1)
+                //    //{
+                //    //    selectedFigure = ai.SelectChessFigure();
+                //    //    aiMove = ai.MakeMove(selectedFigure);
+                //    //    aiX = (int)Math.Round(aiMove.x);
+                //    //    aiY = (int)Math.Round(aiMove.y);
+                //    //        if (aiY > -1)
+                //    //    {
+                //    //        break;
+                //    //    }
+                //    //}
+                //    //allowedMoves = ChessFigurePositions[selectedFigure.CurrentX, selectedFigure.CurrentY].PossibleMove();
+                //    //CurrentXLocation = selectedFigure.CurrentX;
+                //    //CurrentYLocation = selectedFigure.CurrentY;
+                //    //MoveChessFigure(aiX, aiY);
+
+                //    //Debug play myself
+                //    if (mouseClicked && !EndGameMenu.GameHasEnded)
+                //    {
+                //        if (selectionX >= 0 && selectionY >= 0)
+                //        {
+                //            if (selectedFigure == null)
+                //            {
+                //                // Select Figure
+                //                SelectChessFigure(selectionX, selectionY);
+                //            }
+                //            else
+                //            {
+                //                // Move Figure
+                //                MoveChessFigure(selectionX, selectionY);
+                //            }
+                //        }
+                //    }
+                //}//black turn
+                if (isWhiteTurn)
+                {
+                    Player1Turn.SetActive(true);
+                    Player2Turn.SetActive(false);
+                    //Camera.main.transform.rotation = Quaternion.Euler(90, 0, 0); //auto rotates the camera back and forth per turn
+                }
+                if (!isWhiteTurn)
+                {
+                    Player1Turn.SetActive(false);
+                    Player2Turn.SetActive(true);
+                    //Camera.main.transform.rotation = Quaternion.Euler(90, 0, -180); //auto rotates the camera back and forth per turn
+                }
+                if (!inCheck)
+                {
+                    CheckScreen.SetActive(false);
+                } if (inCheck)
+                {
+                    CheckScreen.SetActive(true);
+                }
+
+                //Zoom In Logic
+                if (zoomingIn)
+                {
+                    OnZoomIn();
+                }
+                //Zoom Out Logic
+                if (zoomingOut)
+                {
+                    OnZoomOut();
+                }
+                //Rotate Left Logic
+                if (rotatingLeft)
+                {
+                    OnRotateLeft();
+                }
+                //Rotate Right Logic
+                if (rotatingRight)
+                {
+                    OnRotateRight();
+                }
+            }//end of if !paused
         }//end of try catch
         catch (Exception e)
         {
@@ -228,35 +259,34 @@ public class BoardManager : MonoBehaviour
         {
             if (ChessFigurePositions[x, y] == null) return;
             if (ChessFigurePositions[x, y].isWhite != isWhiteTurn) return;
-        
 
-        bool hasAtLeastOneMove = false;
-        allowedMoves = ChessFigurePositions[x, y].PossibleMove(ChessFigurePositions);
+            bool hasAtLeastOneMove = false;
+            allowedMoves = ChessFigurePositions[x, y].PossibleMove(ChessFigurePositions);
 
-        for (int i = 0; i < 8; i++)
-        {
-            for (int j = 0; j < 8; j++)
+            for (int i = 0; i < 8; i++)
             {
-                if (allowedMoves[i, j])
+                for (int j = 0; j < 8; j++)
                 {
-                    hasAtLeastOneMove = true;
-                    // break outer loop
-                    i = 7;
+                    if (allowedMoves[i, j])
+                    {
+                        hasAtLeastOneMove = true;
+                        // break outer loop
+                        i = 7;
 
-                    // break inner loop
-                    break;
+                        // break inner loop
+                        break;
+                    }
                 }
             }
-        }
 
-        if (!hasAtLeastOneMove) return;
+            if (!hasAtLeastOneMove) return;
 
-        selectedFigure = ChessFigurePositions[x, y];
-        mouseClicked = false;
-        CurrentXLocation = x;
-        CurrentYLocation = y;
-        PreventCheck();
-        BoardHighlighting.Instance.HighlightAllowedMoves(allowedMoves);
+            selectedFigure = ChessFigurePositions[x, y];
+            mouseClicked = false;
+            CurrentXLocation = x;
+            CurrentYLocation = y;
+            PreventCheck();
+            BoardHighlighting.Instance.HighlightAllowedMoves(allowedMoves);
         }
         catch (Exception e)
         {
@@ -274,16 +304,16 @@ public class BoardManager : MonoBehaviour
                 ChessFigure c = ChessFigurePositions[x, y];
                 ChessFigurePositions[CurrentXLocation, CurrentYLocation] = null;
                 //selectedFigure.transform.position = GetTileCenter(x, y);
-                selectedFigure.SetPosition(GetTileCenter(x, y),false);
-                ChessFigurePositions[x, y] = selectedFigure; 
+                selectedFigure.SetPosition(GetTileCenter(x, y), false);
+                ChessFigurePositions[x, y] = selectedFigure;
                 if (selectedFigure.GetType() == typeof(Pawn) && selectedFigure.isWhite && y == 7)
                 { //In this instance, Pawn will get promoted instantly if it kills, otherwise it has to confirm movement.
                     if ((c == null) || (c != null && c.GetType() != typeof(King)))
                     {
                         Time.timeScale = 0f;
-                        PromotionMenu.PawnIsPromoted = true;
                         CurrentXLocation = x;
                         CurrentYLocation = y;
+                        PromotionMenu.PawnIsPromoted = true;
                         activeFigures.Remove(selectedFigure.gameObject);
                         whiteFigures.Remove(selectedFigure.gameObject);
                         Destroy(selectedFigure.gameObject);
@@ -299,7 +329,7 @@ public class BoardManager : MonoBehaviour
                         Destroy(selectedFigure.gameObject);
                     }
                 }
-                if(selectedFigure.GetType() == typeof(Pawn) && y == 5 && Math.Abs(x-CurrentXLocation) == 1 && selectedFigure.isWhite)
+                if (selectedFigure.GetType() == typeof(Pawn) && y == 5 && Math.Abs(x - CurrentXLocation) == 1 && selectedFigure.isWhite)
                 { // En Passant White
                     ChessFigure c2 = ChessFigurePositions[x, y - 1]; //check the figure right below the move
                     Vector2Int[] lastMove = moveList[moveList.Count - 1];//check that the last move was on the same x axis
@@ -312,6 +342,8 @@ public class BoardManager : MonoBehaviour
                             + (Vector3.back * deathSpacing) * deadBlackFigures.Count * 3f;
                         //Debug.Log(blackDeath + " is the black death vector"); //great for debugging the death locations
                         c2.SetPosition(blackDeath);
+                        activeFigures.Remove(c2.gameObject);
+                        ChessFigurePositions[x, y - 1] = null;
                     }
                 }
                 if (selectedFigure.GetType() == typeof(Pawn) && y == 2 && Math.Abs(x - CurrentXLocation) == 1 && !selectedFigure.isWhite)
@@ -322,25 +354,27 @@ public class BoardManager : MonoBehaviour
                     {// if all these conditions meet, kill the pawn
                         deadWhiteFigures.Add(c2.gameObject);
                         whiteFigures.Remove(c2.gameObject);
-                        Vector3 whiteDeath = new Vector3(12.5f * TILE_SIZE, 0, 2.7f * TILE_SIZE)
+                        Vector3 whiteDeath = new Vector3(12.5f * TILE_SIZE, 0, 3.5f * TILE_SIZE)
                             - bounds
-                            + (Vector3.forward * deathSpacing) * deadWhiteFigures.Count * 2.5f;
+                            + (Vector3.forward * deathSpacing) * deadWhiteFigures.Count * 3f;
                         //Debug.Log(whiteDeath + " is the white death vector"); //great for debugging the death locations
                         c2.SetPosition(whiteDeath);
+                        activeFigures.Remove(c2.gameObject);
+                        ChessFigurePositions[x, y + 1] = null;
                     }
                 }
 
                 if (selectedFigure.GetType() == typeof(King) && Math.Abs(x - CurrentXLocation) > 1)
                 {// King is Castling
-                    if((x - CurrentXLocation) == 2)
+                    if ((x - CurrentXLocation) == 2)
                     {// King Castling Short
                         ChessFigure c2 = ChessFigurePositions[x + 1, y];
                         //c2.transform.position = GetTileCenter(x - 1, y);
-                        c2.SetPosition(GetTileCenter(x - 1, y),false);
+                        c2.SetPosition(GetTileCenter(x - 1, y), false);
                         ChessFigurePositions[x - 1, y] = c2;
                         ChessFigurePositions[x + 1, y] = null;
                     }
-                    else 
+                    else
                     {// King Castling Long
                         ChessFigure c2 = ChessFigurePositions[x - 2, y];
                         //c2.transform.position = GetTileCenter(x + 1, y);
@@ -356,9 +390,9 @@ public class BoardManager : MonoBehaviour
                     {
                         deadWhiteFigures.Add(c.gameObject);
                         whiteFigures.Remove(c.gameObject);
-                        Vector3 whiteDeath = new Vector3(12.5f * TILE_SIZE, 0, 2.7f * TILE_SIZE)
+                        Vector3 whiteDeath = new Vector3(12.5f * TILE_SIZE, 0, 3.5f * TILE_SIZE)
                             - bounds
-                            + (Vector3.forward * deathSpacing) * deadWhiteFigures.Count*2.5f;
+                            + (Vector3.forward * deathSpacing) * deadWhiteFigures.Count * 3f;
                         //Debug.Log(whiteDeath + " is the white death vector"); //great for debugging the death locations
                         c.SetPosition(whiteDeath);
                     }
@@ -380,19 +414,22 @@ public class BoardManager : MonoBehaviour
                         return;
                     }
                 }
-                moveList.Add(new Vector2Int[] { new Vector2Int(CurrentXLocation, CurrentYLocation), new Vector2Int(x, y) } );
+                moveList.Add(new Vector2Int[] { new Vector2Int(CurrentXLocation, CurrentYLocation), new Vector2Int(x, y) });
+                UpdateMoveList(); //moveList
                 isWhiteTurn = !isWhiteTurn;
                 selectedFigure.hasMoved = true;
+                defenderXLocations.Clear();
+                defenderYLocations.Clear();
             }//end of if allowed moves
             else
             {
-                if (isWhiteTurn)
-                {
+                //if (isWhiteTurn)
+                //{
                     selectedFigure.SetPosition(GetTileCenter(CurrentXLocation, CurrentYLocation));
                     ChessFigurePositions[selectedFigure.CurrentX, selectedFigure.CurrentY] = selectedFigure;
                     //selectedFigure.transform.position = GetTileCenter(x, y);
                     //Debug.Log(" I have returned home");
-                }
+                //}
             }
         }//end of try
         catch (Exception e)
@@ -452,7 +489,7 @@ public class BoardManager : MonoBehaviour
             selectionX = -1;
             selectionY = -1;
         }
-        if(selectedFigure != null && isWhiteTurn)
+        if (selectedFigure != null)//&& isWhiteTurn
         {
             //attempt 1 at "dragging" pieces
             Plane horizontalPlane = new Plane(Vector3.up, Vector3.up * TILE_OFFSET);
@@ -467,7 +504,7 @@ public class BoardManager : MonoBehaviour
         GameObject go = Instantiate(chessFigures[index], GetTileCenter(x, y), chessFigures[index].transform.rotation) as GameObject;
         go.transform.SetParent(transform);
         ChessFigurePositions[x, y] = go.GetComponent<ChessFigure>();
-        ChessFigurePositions[x, y].SetPosition(GetTileCenter(x, y),true);
+        ChessFigurePositions[x, y].SetPosition(GetTileCenter(x, y), true);
         activeFigures.Add(go);
         if (index <= 5)
         {
@@ -531,13 +568,13 @@ public class BoardManager : MonoBehaviour
     private void PreventCheck()
     {
         ChessFigure targetKing = null;
-        for(int x = 0; x < 8; x++)
+        for (int x = 0; x < 8; x++)
         {
-            for(int y = 0; y < 8; y++)
+            for (int y = 0; y < 8; y++)
             {
-                if(ChessFigurePositions[x, y] != null && ChessFigurePositions[x, y].GetType() == typeof(King))
+                if (ChessFigurePositions[x, y] != null && ChessFigurePositions[x, y].GetType() == typeof(King))
                 {
-                    if(ChessFigurePositions[x, y].isWhite == selectedFigure.isWhite || !ChessFigurePositions[x, y].isWhite == !selectedFigure.isWhite)
+                    if (ChessFigurePositions[x, y].isWhite == selectedFigure.isWhite || !ChessFigurePositions[x, y].isWhite == !selectedFigure.isWhite)
                     {
                         targetKing = ChessFigurePositions[x, y];
                         //Debug.Log("We have found the king, he is at " + x + ", " + y + ". And he is " + ChessFigurePositions[x, y].isWhite);
@@ -548,7 +585,7 @@ public class BoardManager : MonoBehaviour
         SimulateMoveForSinglePiece(selectedFigure, allowedMoves, targetKing);
     }//end PreventCheck
 
-    private void SimulateMoveForSinglePiece(ChessFigure c,bool[,] allowingMoves, ChessFigure targetKing)
+    private void SimulateMoveForSinglePiece(ChessFigure c, bool[,] allowingMoves, ChessFigure targetKing)
     {
         // Save the current values to reset after the function call
         // Go through all the moves and simulate if king is in check
@@ -562,6 +599,8 @@ public class BoardManager : MonoBehaviour
                 {//needed a list of all allowed moves for Chess Figure c
                     xValues.Add(x);
                     yValues.Add(y);
+                    //if (c.GetType() == typeof(King))
+                    //    Debug.Log("King's allowed move x - " + x + ", y - " + y);
                 }
             }
         }
@@ -577,7 +616,7 @@ public class BoardManager : MonoBehaviour
             // Did we simulate the king's move?
             if (c.GetType() == typeof(King))
                 kingPositionThisSim = new Vector2Int(simX, simY);
-            
+
             //Copy the [,] and not a reference
             ChessFigure[,] simulation = new ChessFigure[8, 8];
             List<ChessFigure> simAttackingPieces = new List<ChessFigure>();
@@ -634,14 +673,15 @@ public class BoardManager : MonoBehaviour
             // Restore the actual c data
             c.CurrentX = CurrentXLocation;
             c.CurrentY = CurrentYLocation;
-
         }//end for loop of going through all this mess
     }//end of this long ass method
 
     private bool CheckForCheckMate()
     {
-        var lastMove = moveList[moveList.Count - 1];//grab the move that just occurred
+        //var lastMove = moveList[moveList.Count - 1];//grab the move that just occurred
         bool lastPieceWhite = isWhiteTurn; //could have totally just used "isWhiteTurn", but I'll just leave it for now
+        int tempX = CurrentXLocation;
+        int tempY = CurrentYLocation;
 
         List<ChessFigure> attackingPieces = new List<ChessFigure>();
         List<ChessFigure> defendingPieces = new List<ChessFigure>();
@@ -650,7 +690,7 @@ public class BoardManager : MonoBehaviour
         {
             for (int y = 0; y < 8; y++)
             {
-                if (ChessFigurePositions[x, y] != null) 
+                if (ChessFigurePositions[x, y] != null)
                 {
                     if (ChessFigurePositions[x, y].isWhite == lastPieceWhite) //if you are white and the last piece was white
                     {//then you are defending right now
@@ -658,7 +698,6 @@ public class BoardManager : MonoBehaviour
                         if (ChessFigurePositions[x, y].GetType() == typeof(King))
                         {//get the king who is going to be targeted by the enemies
                             targetKing = ChessFigurePositions[x, y];
-                            Debug.Log("Target King located at " + x + ", " + y);
                         }
                     }
                     else
@@ -686,38 +725,44 @@ public class BoardManager : MonoBehaviour
             }//end 2nd inner for loop
         }//end for loop that counts the attacking Pieces
 
-        if(attackMovesCounter > 0)
+        if (attackMovesCounter > 0)
         {//if the attackers are able to kill the king, he is in Check
             inCheck = true;
-            Debug.Log("The King is in check!");
+            //Debug.Log("The King is in check!");
             int defenderMovesCounter = 0;
             for (int i = 0; i < defendingPieces.Count; i++)
             {//get all of the defender configurations allowed moves
                 var pieceMoves = defendingPieces[i].PossibleMove(ChessFigurePositions); //get the boolean array [,] of allowed moves
+                CurrentXLocation = defendingPieces[i].CurrentX;
+                CurrentYLocation = defendingPieces[i].CurrentY;
                 SimulateMoveForSinglePiece(defendingPieces[i], pieceMoves, targetKing);
                 for (int d = 0; d < 8; d++)
                 {
                     for (int e = 0; e < 8; e++)
                     {
-                        if (pieceMoves[d, e])
+                        if (pieceMoves[d, e] && !defenderXLocations.Contains(d))
                         {
+                            //Debug.Log(defendingPieces[i].GetType() + " can move");
                             defenderMovesCounter = defenderMovesCounter + 1;
-                            Debug.Log("There is a way to save the king");
+                            defenderXLocations.Add(defendingPieces[i].CurrentX);
+                            defenderYLocations.Add(defendingPieces[i].CurrentY);
+                            //Debug.Log("There is a way to save the king at x - " + d + ", y - " + e);
                         }
                     }//end of inner for loop
                 }//end of inner for loop
             }//end for loop that counts the defending Pieces
-            if(defenderMovesCounter == 0) //if there is no way to save the king, return true - checkmate
+            if (defenderMovesCounter == 0) //if there is no way to save the king, return true - checkmate
             {
                 return true;
             }
-            Debug.Log(defenderMovesCounter + " possible moves to save the king");
+            //Debug.Log(defenderMovesCounter + " possible moves to save the king");
         }//end if attackMoves can kill king
         else
         {
             inCheck = false;
         }//else the king is not in check
-
+        CurrentXLocation = tempX;
+        CurrentYLocation = tempY;
         return false;
     }
 
@@ -727,20 +772,59 @@ public class BoardManager : MonoBehaviour
         rotateBoard.enabled = true;
         BoardHighlighting.Instance.HideHighlights();
         selectedFigure = null;
+        inCheck = false;
         if (isWhiteTurn)
         {
             WhiteWon = true;
-            victory.Play();
+            if (AudioManager.muted)
+            {
+                victory.Play();
+            }
         }
         else
         {
             WhiteWon = false;
-            defeat.Play();
+            if (AudioManager.muted) 
+            {
+                defeat.Play();
+            }
         }
         //Reload Scene and Play Again
-        
     }
 
+    public void UpdateMoveList()
+    { //moveList
+      Vector2Int[] lastMove = moveList[moveList.Count - 1];//grab the last move
+      string lastMoveX0 = convertToAlphabet(lastMove[0].x);
+      string lastMoveY0 = (lastMove[0].y + 1).ToString();
+      string lastMoveX1 = convertToAlphabet(lastMove[1].x);
+      string lastMoveY1 = (lastMove[1].y + 1).ToString();
+      moveListString = lastMoveX0 + lastMoveY0 + " -> " + lastMoveX1 + lastMoveY1;
+      Moves.text = moveListString;
+    }
+    public string convertToAlphabet(int x)
+    {
+        switch (x)
+        {
+            case 0:
+                return "A";
+            case 1:
+                return "B";
+            case 2:
+                return "C";
+            case 3:
+                return "D";
+            case 4:
+                return "E";
+            case 5:
+                return "F";
+            case 6:
+                return "G";
+            case 7:
+                return "H";
+        }
+        return "";
+    }
     public List<GameObject> GetAllActiveFigures()
     {
         return activeFigures;
@@ -801,14 +885,28 @@ public class BoardManager : MonoBehaviour
 
     private void OnZoomIn()
     {   //Zoom Camera In
-        Camera.main.transform.position += cameraTransform.forward * (Time.deltaTime);
-        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, 2 * Time.deltaTime);
+        if (Camera.main.transform.position.y > 7.5f)
+        {
+            Camera.main.transform.position += cameraTransform.forward * (Time.deltaTime);
+            Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 60, 2 * Time.deltaTime);
+            Player1Turn.transform.localScale -= new Vector3(Time.deltaTime/10, Time.deltaTime/10, Time.deltaTime/10);
+            Player1Turn.transform.position -= new Vector3(.2f, .2f, .2f);
+            Player2Turn.transform.localScale -= new Vector3(Time.deltaTime/10, Time.deltaTime/10, Time.deltaTime/10);
+            Player2Turn.transform.position -= new Vector3(0, .2f, -.05f);
+        }
     }//end OnZoomIn
 
     private void OnZoomOut()
     {   //Zoom Camera Out
-        Camera.main.transform.position -= cameraTransform.forward * (Time.deltaTime);
-        Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80, 2 * Time.deltaTime);
+        if (Camera.main.transform.position.y < 9.5f)
+        {
+            Camera.main.transform.position -= cameraTransform.forward * (Time.deltaTime);
+            Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 60, 2 * Time.deltaTime);
+            Player1Turn.transform.localScale += new Vector3(Time.deltaTime / 10, Time.deltaTime / 10, Time.deltaTime / 10);
+            Player1Turn.transform.position += new Vector3(.2f, .2f, .2f);
+            Player2Turn.transform.localScale += new Vector3(Time.deltaTime / 10, Time.deltaTime / 10, Time.deltaTime / 10);
+            Player2Turn.transform.position += new Vector3(0, .2f, -.05f);
+        }
     }//end OnZoomOut
 
     private void OnRotateLeft()

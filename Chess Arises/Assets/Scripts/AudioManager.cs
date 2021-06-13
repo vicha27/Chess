@@ -40,7 +40,11 @@ public class AudioManager : MonoBehaviour
     void Start()
     {
         if (Settings.profile && Settings.profile.audioMixer != null)
+        {
             Settings.profile.GetAudioLevels();
+            muted = !muted;
+            Mute();
+        }
     }
 
     // Update is called once per frame
@@ -57,7 +61,7 @@ public class AudioManager : MonoBehaviour
         if (Settings.profile && Settings.profile.audioMixer != null && muted)
         {
             Settings.profile.SaveAudioLevels();
-            GameObject myEventSystem = GameObject.Find("EventSystem");
+            GameObject myEventSystem = GameObject.Find("EventSystem");//I think I added this code so it would deselect the apply button
             myEventSystem.GetComponent<UnityEngine.EventSystems.EventSystem>().SetSelectedGameObject(null);
         }
     }
@@ -85,13 +89,14 @@ public class AudioManager : MonoBehaviour
         if (Settings.profile && Settings.profile.audioMixer != null && !muted)
         {
             Settings.profile.Mute();
-            GameObject myEventSystem = GameObject.Find("EventSystem");
+            GameObject myEventSystem = GameObject.Find("EventSystem"); //I think I added this code so it would deselect the mute button
             myEventSystem.GetComponent<UnityEngine.EventSystems.EventSystem>().SetSelectedGameObject(null);
         }
         if (Settings.profile && Settings.profile.audioMixer != null && muted)
         {
+            Settings.profile.Mute();
             CancelChanges();
-            GameObject myEventSystem = GameObject.Find("EventSystem");
+            GameObject myEventSystem = GameObject.Find("EventSystem");//I think I added this code so it would deselect the mute button
             myEventSystem.GetComponent<UnityEngine.EventSystems.EventSystem>().SetSelectedGameObject(null);
         }
     }
