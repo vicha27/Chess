@@ -14,6 +14,8 @@ public class EndGameMenu : MonoBehaviour
 
     public TextMeshProUGUI youLose;
 
+    public TextMeshProUGUI draw;
+
     // Update is called once per frame
     void Update()
     {
@@ -21,10 +23,17 @@ public class EndGameMenu : MonoBehaviour
         {
             endGameMenuUI.SetActive(true);
             //Time.timeScale = 0f;
-            if (BoardManager.WhiteWon)
-                youWin.gameObject.SetActive(true);
+            if (BoardManager.isDraw) 
+            {
+                draw.gameObject.SetActive(true);
+            }
             else
-                youLose.gameObject.SetActive(true);
+            {
+                if (BoardManager.WhiteWon)
+                    youWin.gameObject.SetActive(true);
+                else
+                    youLose.gameObject.SetActive(true);
+            }
         }
     }
 
@@ -44,8 +53,10 @@ public class EndGameMenu : MonoBehaviour
     {
         endGameMenuUI.SetActive(false);
         GameHasEnded = false;
+        BoardManager.isDraw = false;
         youWin.gameObject.SetActive(false);
         youLose.gameObject.SetActive(false);
+        draw.gameObject.SetActive(false);
         PauseMenu.GameIsPaused = false;
         Destroy(BoardManager.Instance);
         Time.timeScale = 1f;

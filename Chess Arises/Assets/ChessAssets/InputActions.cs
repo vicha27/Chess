@@ -676,7 +676,7 @@ public partial class @InputActions : IInputActionCollection2, IDisposable
             ""actions"": [
                 {
                     ""name"": ""MiddleClick"",
-                    ""type"": ""Value"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""61cff871-e358-47b9-8976-3058e5b86294"",
                     ""expectedControlType"": """",
                     ""processors"": """",
@@ -684,7 +684,7 @@ public partial class @InputActions : IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""LeftClick"",
-                    ""type"": ""Button"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""abb09713-14a5-452e-9091-32920e23dd4f"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
@@ -692,15 +692,15 @@ public partial class @InputActions : IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""RightClick"",
-                    ""type"": ""Value"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""26ae9008-095a-4c62-b9a5-a1b3a845d3bf"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """"
                 },
                 {
                     ""name"": ""ScrollWheel"",
-                    ""type"": ""Value"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""81d53d67-29a9-49bc-afef-b60ace9b3c64"",
                     ""expectedControlType"": """",
                     ""processors"": """",
@@ -740,7 +740,7 @@ public partial class @InputActions : IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""Point"",
-                    ""type"": ""PassThrough"",
+                    ""type"": ""Value"",
                     ""id"": ""f0203f3b-cde3-44eb-88b9-12a90e4abd81"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
@@ -748,7 +748,7 @@ public partial class @InputActions : IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""Orientation"",
-                    ""type"": ""PassThrough"",
+                    ""type"": ""Value"",
                     ""id"": ""e93fa6ad-9c87-4a66-9541-c886d3905fad"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",

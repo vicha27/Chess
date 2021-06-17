@@ -259,5 +259,51 @@ public class ProfileSettings : ScriptableObject
                 }
             }//end if
         }//end if
-    }//end GetControlSettings
-}
+    }//end Get Control Settings
+
+        public void SaveColorSettings(Color c, int player)
+        {
+            if (saveInPlayerPrefs)
+            {
+                float red = c.r;
+                float green = c.g;
+                float blue = c.b;
+                if (player == 0)
+                {
+                    PlayerPrefs.SetFloat(prefPrefix + "Player1_Red", red);
+                    PlayerPrefs.SetFloat(prefPrefix + "Player1_Green", green);
+                    PlayerPrefs.SetFloat(prefPrefix + "Player1_Blue", blue);
+                }
+                if (player == 1)
+                {
+                    PlayerPrefs.SetFloat(prefPrefix + "Player2_Red", red);
+                    PlayerPrefs.SetFloat(prefPrefix + "Player2_Green", green);
+                    PlayerPrefs.SetFloat(prefPrefix + "Player2_Blue", blue);
+            }
+            }
+        }//end SaveControlSettings
+
+        public Color GetColorSettings(int player)
+        {
+        float red = 0;
+        float green = 0;
+        float blue = 0;
+            if (saveInPlayerPrefs)
+            {
+                if (PlayerPrefs.HasKey(prefPrefix + "Player1_Red") && player == 0)
+                {
+                    red = PlayerPrefs.GetFloat(prefPrefix + "Player1_Red");
+                    green = PlayerPrefs.GetFloat(prefPrefix + "Player1_Green");
+                    blue = PlayerPrefs.GetFloat(prefPrefix + "Player1_Blue");
+            }//end if player 1
+                if(PlayerPrefs.HasKey(prefPrefix + "Player2_Red") && player == 1)
+                {
+                    red = PlayerPrefs.GetFloat(prefPrefix + "Player2_Red");
+                    green = PlayerPrefs.GetFloat(prefPrefix + "Player2_Green");
+                    blue = PlayerPrefs.GetFloat(prefPrefix + "Player2_Blue");
+            }//end if player 2
+            }//end if save in player prefs
+            Color c = new Color(red, green, blue);
+        return c;
+        }//end GetControlSettings
+}//end Profile Settings

@@ -32,7 +32,7 @@ public class BoardManager : MonoBehaviour
     //the ai itself. Initiated on Start()
     private ChessAI ai;
     //if isWhiteTurn, move White pieces
-    public bool isWhiteTurn = true;
+    public static bool isWhiteTurn = true;
     //if WhiteWon, do white shit
     public static bool WhiteWon = false;
     //Audio Sources for victory and defeat
@@ -52,9 +52,10 @@ public class BoardManager : MonoBehaviour
     [Header("Input Settings")]
     public static PlayerInput playerInput;
     [SerializeField] public GameObject CheckScreen;
-    [SerializeField] public GameObject Player1Turn;
-    [SerializeField] public GameObject Player2Turn;
+    [SerializeField] public TMP_Text Player1Turn;
+    [SerializeField] public TMP_Text Player2Turn;
     [SerializeField] public TMP_Text Moves;
+    [SerializeField] private ProfileSettings m_profiles;
 
     //Action Maps - will eventually use when we need to switch action maps
     //private string actionMapPlayerControls = "CameraControls";
@@ -71,6 +72,7 @@ public class BoardManager : MonoBehaviour
     public static bool rotatingRight = false;
     public static bool mouseClicked = false;
     public static bool inCheck = false;
+    public static bool isDraw = false;
 
     //Adding variables from YouTube - Epitome to make the game look smoother
     //[SerializeField] private float deathSize = 0.1f;
@@ -96,6 +98,11 @@ public class BoardManager : MonoBehaviour
         playerInput.actions["Rotate Left"].canceled += ctx => rotatingLeftFalse();
         playerInput.actions["Rotate Right"].started += ctx => rotatingRightTrue();
         playerInput.actions["Rotate Right"].canceled += ctx => rotatingRightFalse();
+
+        if (m_profiles != null)
+        {
+            m_profiles.SetProfile(m_profiles);
+        }
     }
 
     void Start()
@@ -109,6 +116,15 @@ public class BoardManager : MonoBehaviour
         ChessFigurePositions = new ChessFigure[8, 8];
         SpawnAllChessFigures();
         rotateBoard = gameObject.GetComponent<Animator>();
+        if (Settings.profile)
+        {
+            Color playerColor = new Color(0, 0, 0);
+            playerColor = Settings.profile.GetColorSettings(0);
+            Player1Turn.faceColor = playerColor;
+            playerColor = Settings.profile.GetColorSettings(1);
+            Player2Turn.faceColor = playerColor;
+        }
+
     }
 
     void Update()
@@ -130,7 +146,14 @@ public class BoardManager : MonoBehaviour
                             {
                                 // Select Figure
                                 SelectChessFigure(selectionX, selectionY);
-                            }
+                                if (isDraw)
+                                {
+                                    inCheck = false;
+                                    //isWhiteTurn = !isWhiteTurn;
+                                    EndGame();
+                                    return;
+                                }
+                            }//end if select figure is null
                             else
                             {
                                 // Move Figure
@@ -142,8 +165,8 @@ public class BoardManager : MonoBehaviour
                                     EndGame();
                                     return;
                                 }
-                            }
-                        }
+                            }//end if select figure is not null
+                        }//end if in check
                         else
                         {
                             if (selectedFigure == null)
@@ -206,14 +229,14 @@ public class BoardManager : MonoBehaviour
                 //}//black turn
                 if (isWhiteTurn)
                 {
-                    Player1Turn.SetActive(true);
-                    Player2Turn.SetActive(false);
+                    Player1Turn.gameObject.SetActive(true);
+                    Player2Turn.gameObject.SetActive(false);
                     //Camera.main.transform.rotation = Quaternion.Euler(90, 0, 0); //auto rotates the camera back and forth per turn
                 }
                 if (!isWhiteTurn)
                 {
-                    Player1Turn.SetActive(false);
-                    Player2Turn.SetActive(true);
+                    Player1Turn.gameObject.SetActive(false);
+                    Player2Turn.gameObject.SetActive(true);
                     //Camera.main.transform.rotation = Quaternion.Euler(90, 0, -180); //auto rotates the camera back and forth per turn
                 }
                 if (!inCheck)
@@ -223,7 +246,6 @@ public class BoardManager : MonoBehaviour
                 {
                     CheckScreen.SetActive(true);
                 }
-
                 //Zoom In Logic
                 if (zoomingIn)
                 {
@@ -279,8 +301,10 @@ public class BoardManager : MonoBehaviour
                 }
             }
 
-            if (!hasAtLeastOneMove) return;
-
+            if (!hasAtLeastOneMove)
+            {
+                return;
+            }//if there are no moves available
             selectedFigure = ChessFigurePositions[x, y];
             mouseClicked = false;
             CurrentXLocation = x;
@@ -323,7 +347,11 @@ public class BoardManager : MonoBehaviour
                 { //In this instance, AI Pawn auto spawns a Queen
                     if ((c == null) || (c != null && c.GetType() != typeof(King)))
                     {
-                        SpawnChessFigure(7, x, y); // AI will spawn Queen by default
+                        //SpawnChessFigure(7, x, y); // AI will spawn Queen by default
+                        Time.timeScale = 0f;
+                        CurrentXLocation = x;
+                        CurrentYLocation = y;
+                        PromotionMenu.PawnIsPromoted = true;
                         activeFigures.Remove(selectedFigure.gameObject);
                         blackFigures.Remove(selectedFigure.gameObject);
                         Destroy(selectedFigure.gameObject);
@@ -591,6 +619,7 @@ public class BoardManager : MonoBehaviour
         // Go through all the moves and simulate if king is in check
         List<int> xValues = new List<int>();
         List<int> yValues = new List<int>();
+        int friendlies = 0;
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)
@@ -600,7 +629,7 @@ public class BoardManager : MonoBehaviour
                     xValues.Add(x);
                     yValues.Add(y);
                     //if (c.GetType() == typeof(King))
-                    //    Debug.Log("King's allowed move x - " + x + ", y - " + y);
+                      //  Debug.Log("King's allowed move x - " + x + ", y - " + y);
                 }
             }
         }
@@ -631,6 +660,11 @@ public class BoardManager : MonoBehaviour
                         {
                             simAttackingPieces.Add(simulation[x, y]); //add the enemy piece to the list of enemy pieces that will simulate attacking
                         }//end of if simulation piece is an enemy
+                        if(simulation[x,y].isWhite == c.isWhite)//if the piece has friends, count them
+                        {
+                            friendlies = friendlies + 1;
+                            //Debug.Log(friendlies + " friendlies remaining");
+                        }
                     }//end of if the position is not null
                 }//end for loop
             }//end outer for loop
@@ -669,11 +703,25 @@ public class BoardManager : MonoBehaviour
             {
                 allowingMoves[simX, simY] = false;
             }//end else
-
             // Restore the actual c data
             c.CurrentX = CurrentXLocation;
             c.CurrentY = CurrentYLocation;
         }//end for loop of going through all this mess
+        xValues.Clear();
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                if (allowingMoves[x, y])
+                {//needed a list of all allowed moves for Chess Figure c
+                    xValues.Add(x);
+                }
+            }
+        }
+        if (friendlies <= 8 && xValues.Count == 0 && c.GetType() == typeof(King) && !inCheck)
+        {
+            isDraw = true;
+        }
     }//end of this long ass method
 
     private bool CheckForCheckMate()
@@ -753,6 +801,7 @@ public class BoardManager : MonoBehaviour
             }//end for loop that counts the defending Pieces
             if (defenderMovesCounter == 0) //if there is no way to save the king, return true - checkmate
             {
+                inCheck = true;
                 return true;
             }
             //Debug.Log(defenderMovesCounter + " possible moves to save the king");
@@ -773,20 +822,30 @@ public class BoardManager : MonoBehaviour
         BoardHighlighting.Instance.HideHighlights();
         selectedFigure = null;
         inCheck = false;
-        if (isWhiteTurn)
+        if (isDraw) 
         {
-            WhiteWon = true;
             if (AudioManager.muted)
             {
-                victory.Play();
+                defeat.Play();
             }
         }
         else
         {
-            WhiteWon = false;
-            if (AudioManager.muted) 
+            if (isWhiteTurn)
             {
-                defeat.Play();
+                WhiteWon = true;
+                if (AudioManager.muted)
+                {
+                    victory.Play();
+                }
+            }
+            else
+            {
+                WhiteWon = false;
+                if (AudioManager.muted)
+                {
+                    defeat.Play();
+                }
             }
         }
         //Reload Scene and Play Again

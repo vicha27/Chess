@@ -7,8 +7,14 @@ public class MainMenu : MonoBehaviour
 {
    public void PlayGame()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 2); //Classic = 2
     }
+
+    public void PlayTutorial()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1); //Tutorial = 1
+    }
+    //Need to make a third for Arising and a 4rth for Practice, etc. etc.
 
     public void QuitGame()
     {

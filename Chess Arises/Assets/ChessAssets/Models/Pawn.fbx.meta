@@ -3,7 +3,12 @@ guid: f69877221b2f25641874a283c485dc1a
 ModelImporter:
   serializedVersion: 20200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Pawn
+    second: {fileID: 2100000, guid: 432465a9be6120d46820a46ec56ffc12, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

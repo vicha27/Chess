@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4686175322865740}
   - component: {fileID: 33502268323535610}
   - component: {fileID: 23148799168284738}
-  - component: {fileID: 3160095168849398269}
   - component: {fileID: 1261422621826061122}
   m_Layer: 0
   m_Name: Board
@@ -86,20 +85,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &3160095168849398269
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1737744047434168}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa51fb9ecaba0864e8a9d18634098628, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  chessFigures: []
-  isWhiteTurn: 1
 --- !u!114 &1261422621826061122
 MonoBehaviour:
   m_ObjectHideFlags: 0
